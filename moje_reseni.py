@@ -7,7 +7,7 @@ import soundfile as sf
 #nacitanie signalu
 data, fs = sf.read('xkrali20.wav')
 
-
+### Uloha 1.
 print("delka ve vzorcich: ",data.size) 
 print("delka v sekundach: ", data.size/fs)
 print("minimalna hodnota: ", data.min())
@@ -27,6 +27,8 @@ plt.tight_layout()
 
 plt.show()
 
+
+### Uloha 2.
 fs, data = wavfile.read('xkrali20.wav')
 
 #ustrednenie
@@ -42,23 +44,25 @@ for i in range(round(data.size/512)-2):
     arrayOfData = data[i*512:((i+1)*512)+512]
 
     matrixOfData[i]=arrayOfData
-    #plt.figure(figsize=(10, 5))
     time = np.arange(arrayOfData.size)/fs
+    #plt.figure(figsize=(10, 5))
     #plt.plot(time, arrayOfData)
     #plt.gca().set_title(f"Predspracovanie signalu, frame: {i}")
     #plt.show()
 
 
     
-print(matrixOfData)
-
-
-
-
+### vyskreslenie normalizovaneho a ustredneneho signalu
+#print(matrixOfData)
 #plt.figure(figsize=(10, 5))
 #time = np.arange(data.size)/fs
 #plt.plot(time, data)
 #plt.show()
+
+### Uloha 3.
+
+
+
 
 
 
