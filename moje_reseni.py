@@ -48,7 +48,7 @@ def questOne():
 
     plt.show()
 
-def questTwo():
+def nextQuests():
     ### Uloha 2.
     fs, data = wavfile.read('xkrali20.wav')
 
@@ -113,6 +113,7 @@ def questTwo():
     plt.figure(figsize=(10,5))
     plt.pcolormesh(t,f,sgr_log)
     plt.gca().set_xlabel('t [s]')
+    plt.gca().set_title('Spektrogram')
     plt.gca().set_ylabel('f [Hz]')
     cbar = plt.colorbar()
     cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
@@ -137,12 +138,132 @@ def questTwo():
     #plt.show()
 
 
+    ### Uloha 6.
+    f1 = 972
+    f2 = 1924
+    f3 = 2910
+    f4 = 3885
 
+    N = data.size
+    time = np.arange(N)/fs
+    y1 = np.cos(2*np.pi*f1 * time)
+    y2 = np.cos(2*np.pi*f2 * time)
+    y3 = np.cos(2*np.pi*f3 * time)
+    y4 = np.cos(2*np.pi*f4 * time)
+    Y = y1+y2+y3+y4
+    wavfile.write("4cos.wav", fs, Y.astype(np.float32))
+
+    
+    #plt.figure(figsize=(10, 5))
+    #plt.plot(time, Y)
+    #plt.gca().set_xlabel('$t[s]$')
+    #plt.gca().set_title('Zvukový signál')
+    #plt.gca().set_ylabel('$f\ \' $')
+    #plt.tight_layout()
+    #plt.show()
+
+
+
+    ### Uloha 7.
+
+    fig, ax = plt.subplots(2, 2, figsize=(10,5))
+
+    sampleNumbers = 100
+    imp = [1, *np.zeros(data.size-1)]
+    b1, a1 = signal.butter(4, [(f1-30)/(fs/2),(f1+30)/(fs/2)], btype='bandstop', analog=False, output='ba')
+    h = signal.lfilter(b1, a1, imp[:sampleNumbers])
+    ax[0,0].stem(np.arange(sampleNumbers), h, basefmt= ' ')
+    ax[0,0].set_title('Filter pre f1')
+    ax[0,0].set_xlabel('N')
+    
+    b2, a2 = signal.butter(6, [(f2-30)/(fs/2),(f2+30)/(fs/2)], btype='bandstop', analog=False, output='ba')
+    h = signal.lfilter(b2, a2, imp[:100])
+    ax[0,1].stem(np.arange(sampleNumbers), h, basefmt= ' ')
+    ax[0,1].set_title('Filter pre f2')
+    ax[0,1].set_xlabel('N')
+        
+    b3, a3 = signal.butter(4, [(f3-30)/(fs/2),(f3+30)/(fs/2), ], btype='bandstop', analog=False, output='ba')
+    h = signal.lfilter(b3, a3, imp[:100])
+    ax[1,0].stem(np.arange(sampleNumbers), h, basefmt= ' ')
+    ax[1,0].set_title('Filter pre f3')
+    ax[1,0].set_xlabel('N')
+        
+    b4, a4 = signal.butter(4, [(f4-30)/(fs/2),(f4+30)/(fs/2)], btype='bandstop', analog=False, output='ba')
+    h = signal.lfilter(b4, a4, imp[:100])
+    ax[1,1].stem(np.arange(sampleNumbers), h, basefmt= ' ')
+    ax[1,1].set_title('Filter pre f4')
+    ax[1,1].set_xlabel('N')
+
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+    ## Uloha 9
+    fig, ax = plt.subplots(2, 1, figsize=(10,5))
+    w1, H1 = signal.freqz(b1, a1)
+    ax[0].plot(w1/2/np.pi*fs, np.abs(H1))
+    ax[1].plot(w1/2 /np.pi*fs, np.angle(H1))
+    
+
+    w2, H2 = signal.freqz(b2, a2)
+    ax[0].plot(w2/2/np.pi*fs, np.abs(H2))
+    ax[1].plot(w2/2 /np.pi*fs, np.angle(H2))
+
+    w3, H3 = signal.freqz(b3, a3)
+    ax[0].plot(w3/2/np.pi*fs, np.abs(H3))
+    ax[1].plot(w3/2 /np.pi*fs, np.angle(H3))
+
+    w4, H4 = signal.freqz(b4, a4)
+    ax[0].plot(w4/2/np.pi*fs, np.abs(H4))
+    ax[1].plot(w4/2 /np.pi*fs, np.angle(H4))
+
+    ax[0].set_xlabel('Frekvence [Hz]')
+    ax[0].set_title('Modul frekvenční charakteristiky $|H(e^{j\omega})|$')
+
+    ax[1].set_xlabel('Frekvence [Hz]')
+    ax[1].set_title('Argument frekvenční charakteristiky $\mathrm{arg}\ H(e^{j\omega})$')
+    plt.tight_layout()
+    plt.show()
+
+    
+    ### Uloha 10
+
+    dataFiltered = signal.filtfilt(b1 ,a1 , data)
+    dataFiltered = signal.filtfilt(b2 ,a2 , dataFiltered)
+    dataFiltered = signal.filtfilt(b3 ,a3 , dataFiltered)
+    dataFiltered = signal.filtfilt(b4 ,a4 , dataFiltered)
+
+    #time = np.arange(dataFiltered.size)/fs
+    #plt.figure(figsize=(10, 5))
+    #plt.gca().set_xlabel('$t[s]$')
+    #plt.plot(time, dataFiltered)
+    #plt.gca().set_title(f"Predspracovanie signalu, frame: {i}")
+    #plt.show()
+    
+    
+    f, t, sgr = signal.spectrogram(dataFiltered, fs)
+    sgr_log = 10 * np.log10(sgr+1e-20) 
+    plt.figure(figsize=(10,5))
+    plt.pcolormesh(t,f,sgr_log)
+    plt.gca().set_xlabel('t [s]')
+    plt.gca().set_title('Vyfiltrovany spektrogram')
+    plt.gca().set_ylabel('f [Hz]')
+    cbar = plt.colorbar()
+    cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
+
+    plt.tight_layout()
+    plt.show()
+
+    wavfile.write("audio/clean_bandstop.wav", fs, dataFiltered.astype(np.float32))
+
+   
 
 
 
 
 
 questOne()
-questTwo()
+nextQuests()
 
