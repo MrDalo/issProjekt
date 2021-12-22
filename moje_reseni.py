@@ -42,7 +42,6 @@ def questOne():
 
     plt.gca().set_xlabel('$t[s]$')
     plt.gca().set_title('Zvukový signál')
-    plt.gca().set_ylabel('$f\ \' $')
 
     plt.tight_layout()
 
@@ -173,30 +172,73 @@ def nextQuests():
     b1, a1 = signal.butter(4, [(f1-30)/(fs/2),(f1+30)/(fs/2)], btype='bandstop', analog=False, output='ba')
     h = signal.lfilter(b1, a1, imp[:sampleNumbers])
     ax[0,0].stem(np.arange(sampleNumbers), h, basefmt= ' ')
-    ax[0,0].set_title('Filter pre f1')
+    ax[0,0].set_title('Impulzna odozva pre f1')
     ax[0,0].set_xlabel('N')
     
     b2, a2 = signal.butter(6, [(f2-30)/(fs/2),(f2+30)/(fs/2)], btype='bandstop', analog=False, output='ba')
     h = signal.lfilter(b2, a2, imp[:100])
     ax[0,1].stem(np.arange(sampleNumbers), h, basefmt= ' ')
-    ax[0,1].set_title('Filter pre f2')
+    ax[0,1].set_title('Impulzna odozva pre f2')
     ax[0,1].set_xlabel('N')
         
     b3, a3 = signal.butter(4, [(f3-30)/(fs/2),(f3+30)/(fs/2), ], btype='bandstop', analog=False, output='ba')
     h = signal.lfilter(b3, a3, imp[:100])
     ax[1,0].stem(np.arange(sampleNumbers), h, basefmt= ' ')
-    ax[1,0].set_title('Filter pre f3')
+    ax[1,0].set_title('Impulzna odozva pre f3')
     ax[1,0].set_xlabel('N')
         
     b4, a4 = signal.butter(4, [(f4-30)/(fs/2),(f4+30)/(fs/2)], btype='bandstop', analog=False, output='ba')
     h = signal.lfilter(b4, a4, imp[:100])
     ax[1,1].stem(np.arange(sampleNumbers), h, basefmt= ' ')
-    ax[1,1].set_title('Filter pre f4')
+    ax[1,1].set_title('Impulzna odozva pre f4')
     ax[1,1].set_xlabel('N')
 
 
     plt.tight_layout()
     plt.show()
+
+
+
+    ### Uloha 8.
+
+    #z1, p1, k1 = signal.butter(4, [(f1-30)/(fs/2),(f1+30)/(fs/2)], btype='bandstop', analog=False, output='zpk')
+    #z2, p2, k2 = signal.butter(4, [(f2-30)/(fs/2),(f2+30)/(fs/2)], btype='bandstop', analog=False, output='zpk')
+    #z3, p3, k3 = signal.butter(4, [(f3-30)/(fs/2),(f3+30)/(fs/2)], btype='bandstop', analog=False, output='zpk')
+    #z4, p4, k4 = signal.butter(4, [(f4-30)/(fs/2),(f4+30)/(fs/2)], btype='bandstop', analog=False, output='zpk')
+
+
+    z1, p1, k1 = signal.tf2zpk(b1, a1)
+    z2, p2, k2 = signal.tf2zpk(b2, a2)
+    z3, p3, k3 = signal.tf2zpk(b3, a3)
+    z4, p4, k4 = signal.tf2zpk(b4, a4)
+
+
+    plt.figure(figsize=(6,6))
+    # jednotkova kruznice
+    ang = np.linspace(0, 2*np.pi,100)
+    plt.plot(np.cos(ang), np.sin(ang))
+
+    # nuly, poly
+    plt.scatter(np.real(z1), np.imag(z1), marker='o', facecolors='none', edgecolors='r')
+    plt.scatter(np.real(z2), np.imag(z2), marker='o', facecolors='none', edgecolors='r')
+    plt.scatter(np.real(z3), np.imag(z3), marker='o', facecolors='none', edgecolors='r')
+    plt.scatter(np.real(z4), np.imag(z4), marker='o', facecolors='none', edgecolors='r', label='nuly')
+    plt.scatter(np.real(p1), np.imag(p1), marker='x', color='g')
+    plt.scatter(np.real(p2), np.imag(p2), marker='x', color='g')
+    plt.scatter(np.real(p3), np.imag(p3), marker='x', color='g')
+    plt.scatter(np.real(p4), np.imag(p4), marker='x', color='g', label='póly')
+
+    plt.gca().set_xlabel('Realná složka $\mathbb{R}\{$z$\}$')
+    plt.gca().set_ylabel('Imaginarní složka $\mathbb{I}\{$z$\}$')
+
+    plt.grid(alpha=0.5, linestyle='--')
+    plt.legend(loc='upper left')
+
+    plt.tight_layout()
+    plt.show()
+
+    
+
 
 
 
@@ -235,12 +277,14 @@ def nextQuests():
     dataFiltered = signal.filtfilt(b3 ,a3 , dataFiltered)
     dataFiltered = signal.filtfilt(b4 ,a4 , dataFiltered)
 
-    #time = np.arange(dataFiltered.size)/fs
-    #plt.figure(figsize=(10, 5))
-    #plt.gca().set_xlabel('$t[s]$')
-    #plt.plot(time, dataFiltered)
-    #plt.gca().set_title(f"Predspracovanie signalu, frame: {i}")
-    #plt.show()
+    time = np.arange(dataFiltered.size)/fs
+    plt.figure(figsize=(10, 5))
+    plt.gca().set_xlabel('$t[s]$')
+    plt.plot(time, data, label="Povodny signal")
+    plt.plot(time, dataFiltered, color="red", label="Vyfiltrovany signal")
+    plt.gca().set_title("Rozdiel medzi vyfiltrovanym a povodnym signalom")
+    plt.legend(loc='upper left')
+    plt.show()
     
     
     f, t, sgr = signal.spectrogram(dataFiltered, fs)
