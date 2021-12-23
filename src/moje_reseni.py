@@ -1,3 +1,9 @@
+##########
+# ISS projekt 2021/2022
+# @brief Zdrojovy subor pre riesenei ISS porjektu 2021/2022
+# @author Dalibor Králik
+# login xkrali20
+
 import numpy as np
 from scipy.io import wavfile
 import scipy.signal as signal
