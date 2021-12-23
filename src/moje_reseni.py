@@ -26,7 +26,7 @@ def dft(selectedFrame):
 
 def questOne():
     #nacitanie signalu
-    data, fs = sf.read('xkrali20.wav')
+    data, fs = sf.read('audio/xkrali20.wav')
 
     ### Uloha 1.
     print("delka ve vzorcich: ",data.size) 
@@ -49,7 +49,7 @@ def questOne():
 
 def nextQuests():
     ### Uloha 2.
-    fs, data = wavfile.read('xkrali20.wav')
+    fs, data = wavfile.read('audio/xkrali20.wav')
 
     #ustrednenie
     data = data - np.mean(data)
@@ -60,7 +60,7 @@ def nextQuests():
     matrixOfData = np.zeros(shape=(round(data.size/512)-2, 1024))
 
 
-
+    # rozlozenie signalu na casti po 1024 vzorkov s prekrytim 512 vzorkov
     for i in range(round(data.size/512)-2):
         arrayOfData = data[i*512:((i+1)*512)+512]
         matrixOfData[i]=arrayOfData
@@ -90,23 +90,25 @@ def nextQuests():
     time = np.arange(512)*(fs//2)/512   
     plt.plot(time, abs(DftArray[:512]))
     plt.gca().set_xlabel('$f[HZ] $')
-    plt.gca().set_title("DFT")
+    plt.gca().set_title("DFT - vlastny vypocet")
     plt.show()
 
 
-    #selectedFrame = data[26*512:(27*512)+512]
-    #selectedFrame = np.fft.fft(selectedFrame)
-    ### selectedFrame = np.fft.fft(data)
-    #time = np.arange(512)
-    #time = time * fs//2/512
-    ### time = np.arange(data.size)/fs
-    #plt.figure(figsize=(10, 5))
-    #plt.plot(time, abs(selectedFrame))
-    #plt.gca().set_title("DFT")
-    #plt.show()
+    selectedFrame = data[26*512:(27*512)+512]
+    selectedFrame = np.fft.fft(selectedFrame)
+    ## selectedFrame = np.fft.fft(data)
+    time = np.arange(512)
+    time = time * fs//2/512
+    ## time = np.arange(data.size)/fs
+    plt.figure(figsize=(10, 5))
+    plt.plot(time, abs(selectedFrame[:512]))
+    plt.gca().set_xlabel('$f[HZ] $')
+    plt.gca().set_title("DFT s np.fft.fft()")
+    plt.show()
 
 
     ### Uloha 4.
+    # vykreslenie spektogramu celeho signalu, ktory je ulozeny v premennej data
     f, t, sgr = signal.spectrogram(data, fs)
     sgr_log = 10 * np.log10(sgr+1e-20) 
     plt.figure(figsize=(10,5))
@@ -138,19 +140,39 @@ def nextQuests():
 
 
     ### Uloha 6.
+    # ulozenie odcitanych hodnot z DFT a spektogramu
     f1 = 972
     f2 = 1924
     f3 = 2910
     f4 = 3885
 
+    # tvorba rosivych cosinusoviek an zaklade ich frekvencii na ktorych sa nachadzali
     N = data.size
     time = np.arange(N)/fs
     y1 = np.cos(2*np.pi*f1 * time)
     y2 = np.cos(2*np.pi*f2 * time)
     y3 = np.cos(2*np.pi*f3 * time)
     y4 = np.cos(2*np.pi*f4 * time)
+    
+    # spojenie cosinusoviek a vytvorenie 4cos.wav
     Y = y1+y2+y3+y4
-    wavfile.write("4cos.wav", fs, Y.astype(np.float32))
+    wavfile.write("audio/4cos.wav", fs, Y.astype(np.float32))
+
+    # tvorba a vyplotenie spektogramu spojenych rusivych cosinusoviek
+    cos4Data, cosFs = sf.read('audio/4cos.wav')
+    f, t, sgr = signal.spectrogram(cos4Data, cosFs)
+    sgr_log = 10 * np.log10(sgr+1e-20) 
+    plt.figure(figsize=(10,5))
+    plt.pcolormesh(t,f,sgr_log)
+    plt.gca().set_xlabel('t [s]')
+    plt.gca().set_title('Spektrogram spojenych cosinusoviek')
+    plt.gca().set_ylabel('f [Hz]')
+    cbar = plt.colorbar()
+    cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
+
+    plt.tight_layout()
+    plt.show()
+
 
     
     #plt.figure(figsize=(10, 5))
@@ -165,33 +187,50 @@ def nextQuests():
 
     ### Uloha 7.
 
+    #tvorba 4 filtrov
     fig, ax = plt.subplots(2, 2, figsize=(10,5))
 
+    # tvorba cislicoveho filtru pre f1
     sampleNumbers = 100
     imp = [1, *np.zeros(data.size-1)]
     b1, a1 = signal.butter(4, [(f1-30)/(fs/2),(f1+30)/(fs/2)], btype='bandstop', analog=False, output='ba')
     h = signal.lfilter(b1, a1, imp[:sampleNumbers])
+        # vyplotenie impluznej odozvy pre danu frekvenciu vytvoreneho cislicoveho filtru
     ax[0,0].stem(np.arange(sampleNumbers), h, basefmt= ' ')
     ax[0,0].set_title('Impulzna odozva pre f1')
     ax[0,0].set_xlabel('N')
+    print("B1: ",b1)
+    print("A1: ",a1)
     
+    # tvorba cislicoveho filtru pre f2
     b2, a2 = signal.butter(6, [(f2-30)/(fs/2),(f2+30)/(fs/2)], btype='bandstop', analog=False, output='ba')
     h = signal.lfilter(b2, a2, imp[:100])
+        # vyplotenie impluznej odozvy pre danu frekvenciu vytvoreneho cislicoveho filtru
     ax[0,1].stem(np.arange(sampleNumbers), h, basefmt= ' ')
     ax[0,1].set_title('Impulzna odozva pre f2')
     ax[0,1].set_xlabel('N')
+    print("B2: ",b2)
+    print("A2: ",a2)
         
+    # tvorba cislicoveho filtru pre f3
     b3, a3 = signal.butter(4, [(f3-30)/(fs/2),(f3+30)/(fs/2), ], btype='bandstop', analog=False, output='ba')
     h = signal.lfilter(b3, a3, imp[:100])
+        # vyplotenie impluznej odozvy pre danu frekvenciu vytvoreneho cislicoveho filtru
     ax[1,0].stem(np.arange(sampleNumbers), h, basefmt= ' ')
     ax[1,0].set_title('Impulzna odozva pre f3')
     ax[1,0].set_xlabel('N')
+    print("B3: ",b3)
+    print("A3: ",a3)
         
+    # tvorba cislicoveho filtru pre f4
     b4, a4 = signal.butter(4, [(f4-30)/(fs/2),(f4+30)/(fs/2)], btype='bandstop', analog=False, output='ba')
     h = signal.lfilter(b4, a4, imp[:100])
+        # vyplotenie impluznej odozvy pre danu frekvenciu vytvoreneho cislicoveho filtru
     ax[1,1].stem(np.arange(sampleNumbers), h, basefmt= ' ')
     ax[1,1].set_title('Impulzna odozva pre f4')
     ax[1,1].set_xlabel('N')
+    print("B4: ",b4)
+    print("A4: ",a4)
 
 
     plt.tight_layout()
@@ -206,7 +245,7 @@ def nextQuests():
     #z3, p3, k3 = signal.butter(4, [(f3-30)/(fs/2),(f3+30)/(fs/2)], btype='bandstop', analog=False, output='zpk')
     #z4, p4, k4 = signal.butter(4, [(f4-30)/(fs/2),(f4+30)/(fs/2)], btype='bandstop', analog=False, output='zpk')
 
-
+    # tvorba nul a polov pre dany koeficienty cislicovych filtrov
     z1, p1, k1 = signal.tf2zpk(b1, a1)
     z2, p2, k2 = signal.tf2zpk(b2, a2)
     z3, p3, k3 = signal.tf2zpk(b3, a3)
@@ -218,7 +257,7 @@ def nextQuests():
     ang = np.linspace(0, 2*np.pi,100)
     plt.plot(np.cos(ang), np.sin(ang))
 
-    # nuly, poly
+    # nuly, poly - plotenie
     plt.scatter(np.real(z1), np.imag(z1), marker='o', facecolors='none', edgecolors='r')
     plt.scatter(np.real(z2), np.imag(z2), marker='o', facecolors='none', edgecolors='r')
     plt.scatter(np.real(z3), np.imag(z3), marker='o', facecolors='none', edgecolors='r')
@@ -243,6 +282,8 @@ def nextQuests():
 
 
     ## Uloha 9
+
+    # tvorba frekvencnej charakteristiky cislicovych filtrov an zaklade ich koeficientov
     fig, ax = plt.subplots(2, 1, figsize=(10,5))
     w1, H1 = signal.freqz(b1, a1)
     ax[0].plot(w1/2/np.pi*fs, np.abs(H1))
@@ -271,12 +312,13 @@ def nextQuests():
 
     
     ### Uloha 10
-
+    # vyfiltrovanie povodneho signalu
     dataFiltered = signal.filtfilt(b1 ,a1 , data)
     dataFiltered = signal.filtfilt(b2 ,a2 , dataFiltered)
     dataFiltered = signal.filtfilt(b3 ,a3 , dataFiltered)
     dataFiltered = signal.filtfilt(b4 ,a4 , dataFiltered)
 
+    # tvorba a vyplotenie grafu, ktory obsahuje povodny a vyfiltrovany signal
     time = np.arange(dataFiltered.size)/fs
     plt.figure(figsize=(10, 5))
     plt.gca().set_xlabel('$t[s]$')
@@ -286,7 +328,7 @@ def nextQuests():
     plt.legend(loc='upper left')
     plt.show()
     
-    
+    # tvorba spektrogramu vyfiltrovanieho signalu
     f, t, sgr = signal.spectrogram(dataFiltered, fs)
     sgr_log = 10 * np.log10(sgr+1e-20) 
     plt.figure(figsize=(10,5))
@@ -300,6 +342,7 @@ def nextQuests():
     plt.tight_layout()
     plt.show()
 
+    # vytvorenie audiozaznamu vyfiltrovaneho signalu
     wavfile.write("audio/clean_bandstop.wav", fs, dataFiltered.astype(np.float32))
 
    
