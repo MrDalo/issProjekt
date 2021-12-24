@@ -32,7 +32,7 @@ def dft(selectedFrame):
 
 def questOne():
     #nacitanie signalu
-    data, fs = sf.read('audio/xkrali20.wav')
+    data, fs = sf.read('../audio/xkrali20.wav')
 
     ### Uloha 1.
     print("delka ve vzorcich: ",data.size) 
@@ -55,7 +55,7 @@ def questOne():
 
 def nextQuests():
     ### Uloha 2.
-    fs, data = wavfile.read('audio/xkrali20.wav')
+    fs, data = wavfile.read('../audio/xkrali20.wav')
 
     #ustrednenie
     data = data - np.mean(data)
@@ -162,10 +162,10 @@ def nextQuests():
     
     # spojenie cosinusoviek a vytvorenie 4cos.wav
     Y = y1+y2+y3+y4
-    wavfile.write("audio/4cos.wav", fs, Y.astype(np.float32))
+    wavfile.write("../audio/4cos.wav", fs, Y.astype(np.float32))
 
     # tvorba a vyplotenie spektogramu spojenych rusivych cosinusoviek
-    cos4Data, cosFs = sf.read('audio/4cos.wav')
+    cos4Data, cosFs = sf.read('../audio/4cos.wav')
     f, t, sgr = signal.spectrogram(cos4Data, cosFs)
     sgr_log = 10 * np.log10(sgr+1e-20) 
     plt.figure(figsize=(10,5))
@@ -349,7 +349,7 @@ def nextQuests():
     plt.show()
 
     # vytvorenie audiozaznamu vyfiltrovaneho signalu
-    wavfile.write("audio/clean_bandstop.wav", fs, dataFiltered.astype(np.float32))
+    wavfile.write("../audio/clean_bandstop.wav", fs, dataFiltered.astype(np.float32))
 
    
 
